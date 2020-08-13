@@ -1,0 +1,23 @@
+workflow:
+  globalAddOns:
+    repoName: example
+    dockerFilePath: Dockerfile
+    dockerCloudOps:
+      - getDockerLoginFile
+      - getDockerBuildPushFile
+      - ensureRepoExistence
+  containers:
+    - container:
+      addOns:
+        isDocker: true
+      name: docker
+      image: docker:18.09.9
+      command: |
+        sh /data/dockerLogin.sh
+        sh /data/dockerBuildPush.sh
+    - container:
+      name: dummy-alpine
+      image: alpine
+      command: |
+        source /data/deploymentEnvs
+        echo $REGISTRY_DOMAIN/$REPO_NAME:$COMMITID

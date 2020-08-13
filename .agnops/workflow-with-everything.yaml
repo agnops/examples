@@ -1,0 +1,62 @@
+workflow:
+  autoTrigger: true
+  globalAddOns:
+    ramDisk: 50Mi
+    repoName: example
+    dockerFilePath: Dockerfile
+    dockerCloudOps:
+      - getDockerLoginFile
+      - getDockerBuildPushFile
+      - ensureRepoExistence
+  branchFilters:
+    - master
+    - develop
+    - /^fb-/
+  trackedFiles:
+    - .agnops/
+  containers:
+    - container:
+      name: kubectl-apply-docker-hub-secret-yaml
+      image: agnosticops/helm-kubectl
+      kubernetes:
+        resources:
+          limits:
+            memory: 80Mi
+          requests:
+            cpu: 50m
+            memory: 80Mi
+      command: |
+        kubectl apply -f secret-docker-creds/secret-docker-creds.yaml --namespace=ci-cd-tools
+    - container:
+      addOns:
+        isDocker: true
+      name: docker-hub-build-push
+      image: docker:18.09.9
+      kubernetes:
+        envFrom:
+          - secretRef:
+              name: docker-registry-2
+        resources:
+          limits:
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+      command: |
+        echo "$DOCKERHUBPASS" | docker login --username $DOCKERHUBUSER --password-stdin
+        docker build -t agnosticops/example .
+        docker push agnosticops/example
+    - container:
+      addOns:
+        isDocker: true
+      name: docker-cloud-provider-build-push
+      image: docker:18.09.9
+      command: |
+        sh /data/dockerLogin.sh
+        sh /data/dockerBuildPush.sh
+    - container:
+      name: print-cloud-provider-registry-details
+      image: alpine
+      command: |
+        source /data/deploymentEnvs
+        echo $REGISTRY_DOMAIN/$REPO_NAME:$COMMITID

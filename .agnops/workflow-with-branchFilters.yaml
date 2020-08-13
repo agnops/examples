@@ -1,0 +1,13 @@
+workflow:
+  autoTrigger: true
+  branchFilters:
+    - master
+    - develop
+    - /^fb-/
+  containers:
+    - container:
+      name: dummy-alpine
+      image: alpine
+      command: |
+        ls /
+        sleep 20
