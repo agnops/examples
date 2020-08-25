@@ -8,6 +8,9 @@ workflow:
       - getDockerLoginFile
       - getDockerBuildPushFile
       - ensureRepoExistence
+  cloudFilters:
+    - aws
+    - gcp
   branchFilters:
     - master
     - develop
@@ -18,13 +21,6 @@ workflow:
     - container:
       name: kubectl-apply-docker-hub-secret-yaml
       image: agnosticops/helm-kubectl
-      kubernetes:
-        resources:
-          limits:
-            memory: 80Mi
-          requests:
-            cpu: 50m
-            memory: 80Mi
       command: |
         kubectl apply -f secret-docker-creds/secret-docker-creds.yaml --namespace=ci-cd-tools
     - container:
@@ -38,6 +34,7 @@ workflow:
               name: docker-registry-2
         resources:
           limits:
+            cpu: 500m
             memory: 200Mi
           requests:
             cpu: 100m
