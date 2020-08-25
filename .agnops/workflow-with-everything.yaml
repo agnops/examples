@@ -9,7 +9,7 @@ workflow:
       - getDockerBuildPushFile
       - ensureRepoExistence
   cloudFilters:
-    - aws
+    - /^aws/
     - gcp
   branchFilters:
     - master
